@@ -63,7 +63,7 @@
     <dependency>
       <groupId>edu.berkeley.cs.amplab</groupId>
       <artifactId>spark-indexedrdd_2.10</artifactId>
-      <version>0.2-SNAPSHOT</version>
+      <version>0.2-Deltas</version>
     </dependency>
     <dependency>
       <groupId>org.slf4j</groupId>
@@ -102,6 +102,7 @@
       <plugin>
         <groupId>org.scala-tools</groupId>
         <artifactId>maven-scala-plugin</artifactId>
+        <version>2.14.2</version>
         <executions>
           <execution>
             <goals>
@@ -119,6 +120,7 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-eclipse-plugin</artifactId>
+        <version>2.10</version>
         <configuration>
           <downloadSources>true</downloadSources>
           <buildcommands>
@@ -172,6 +174,7 @@
       <plugin>
         <groupId>org.scala-tools</groupId>
         <artifactId>maven-scala-plugin</artifactId>
+        <version>2.14.2</version>
         <configuration>
           <scalaVersion>${scala.version}</scalaVersion>
         </configuration>
