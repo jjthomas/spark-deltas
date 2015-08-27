@@ -1,0 +1,38 @@
+---DSoAP small query example---
+*Query for "bellarmine" - ~50 s
+*Query for "bellarmine AND prep" - ~50 s
+*Repeating these queries does not change the execution time (would expect more reads from memory - so not disk bound?)
+*Delta query for "bellarmine" -> "bellarmine AND prep" - ~100 s, but no reads from RocksDB. So RocksDB time is essentially negligible
+here and Lucene (compute-bound??) is contributing all of the overhead
+
+---DSoAP per-record performance observations---
+DSoaP definitely not saturating any resources -- 4 parallel requests return in same time as one (parallel bucket scanning??)
+
+(In following discussion, "hot" refers to data expected to be in buffer cache,
+"cache" used in the context of index results means that the results are actually
+in the IndexServer's in-memory cache)
+-For big queries "obama", storage layer always dominates (20-30 mins to give ~1m records)
+    -Can we show that saving lookups in DataServer valuable -- run delta "barack AND obama" vs.
+    normal "barack AND obama" after index and data files hot
+        -searching "obama AND barack" when index results cached -- 2.06s, 16777 records
+        -searching "obama" when index results cached -- 43.5s, 356947 records
+        -conclusion: 0.1ms wasted per record that is common to the previous and current query
+            (we don't need to send such records at all from index server or look them up in DataServer)
+        -delta from "obama" to "obama AND barack": 340170 negative records, 19.92 seconds =>
+            0.059ms per negative record, so roughly 0.04ms wasted per record that is removed from the
+            previous query
+            (save the DataServer lookups but not the record transmission)
+        -when we say "wasted" we are comparing to the case where we just reissue the new query
+        as a normal requery rather than a delta query
+        -index server from cache for 356947 records ("obama") -- 11.18s, 0.03ms per record (just an ID)
+        -index server from hot files from 356947 records ("obama+", which is same query but doesn't hit
+        cache) -- 74s, so over the cache case it is about 0.1ms per ID
+
+---Delta performance degradation example---
+C:\hadoop\spark-1.2.1.2.2.4.2-0002>.\bin\spark-submit --verbose --class com.micr
+osoft.dsoap.ComputeOnlyDeltaTest --master spark://XXX:7077 --num-exec
+utors 5 --driver-memory 512m --executor-memory 5g --executor-cores 1 D:\spark-hd
+fs-loader-1.0-SNAPSHOT.jar 10000000 1000000 50000 50000 5 5 > D:\compute-delta-o
+ut
+-- performance degregation, maybe because stuff was kicked out of cache?
+    -yes, if we increase executor memory to 10g, delta is 10x faster (~70s to 8s)

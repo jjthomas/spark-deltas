@@ -1,0 +1,1 @@
+.\bin\spark-submit --verbose --class com.microsoft.dsoap.DsoapQuery --master yarn-cluster --queue shared --num-executors 1000 --driver-memory 512m --executor-memory 2g --executor-cores 1 D:\spark-hdfs-loader-1.0-SNAPSHOT.jar

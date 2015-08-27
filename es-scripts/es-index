@@ -1,0 +1,197 @@
+PUT /twitter
+
+# TODO change number of shards to 24
+{
+    "settings" : {
+        "number_of_shards" : 5,
+        "number_of_replicas" : 1
+    }
+}
+
+PUT /twitter
+# TODO how do we do multi-word filters like "barack obama"
+# TODO apparently specifying routing this way is slower than using URI
+# TODO is standard better than english? is english stemming overkill / stem words it shouldn't?
+# TODO it also forces us to manually stem the search terms, e.g. searching for transparent => transpar
+# TODO (since we use filter rather than query)
+# TODO Is the filler_token in shingle correct? Do we want '_' there
+{
+    "settings" : {
+        "number_of_shards" : 60,
+        "number_of_replicas" : 1,
+        "analysis": {
+          "filter": {
+            "english_stop": {
+              "type":       "stop",
+              "stopwords":  "_english_"
+            },
+            "english_stemmer": {
+              "type":       "stemmer",
+              "language":   "english"
+            },
+            "english_possessive_stemmer": {
+              "type":       "stemmer",
+              "language":   "possessive_english"
+            },
+            "custom_shingle": {
+              "type": "shingle",
+              "min_shingle_size": "2",
+              "max_shingle_size": "3"
+            }
+          },
+          "analyzer": {
+            "english_shingle": {
+              "tokenizer":  "standard",
+              "filter": [
+                "english_possessive_stemmer",
+                "lowercase",
+                "english_stop",
+                "english_stemmer",
+                "custom_shingle"
+              ]
+            }
+          }
+        }
+    },
+    "mappings" : {
+        "tweet" : {
+            "properties" : {
+                "ID" : {
+                    "type" : "long"
+                },
+                "CreatedAt" : {
+                    "type" : "date"
+                },
+                "Text" : {
+                    "type" : "string",
+                    "analyzer" : "english_shingle",
+                    "omit_norms" : true,
+                    "index_options" : "docs"
+                },
+                "UserName" : {
+                    "type" : "string",
+                    "index" : "no"
+                },
+                "UserID" : {
+                    "type" : "long"
+                },
+                "UserDescription" : {
+                    "type" : "string",
+                    "index" : "no"
+                },
+                "UserCreatedAt" : {
+                    "type" : "date",
+                    "index" : "no"
+                },
+                "FavoriteCount" : {
+                    "type" : "integer",
+                    "index" : "no"
+                },
+                "GeoPoint" : {
+                    "type" : "geo_point",
+                    "index" : "no"
+                },
+                "InReplyToStatusId" : {
+                    "type" : "long",
+                    "index" : "no"
+                },
+                "InReplyToUserId" : {
+                    "type" : "long",
+                    "index" : "no"
+                },
+                "RetweetedID" : {
+                    "type" : "long",
+                    "index" : "no"
+                },
+                "RetweetedUserID" : {
+                    "type" : "long",
+                    "index" : "no"
+                },
+                "Source" : {
+                    "type" : "string",
+                    "index" : "no"
+                },
+                "UserFavoritesCount" : {
+                    "type" : "integer",
+                    "index" : "no"
+                },
+                "UserFollowersCount" : {
+                    "type" : "integer",
+                    "index" : "no"
+                },
+                "UserFriendsCount" : {
+                    "type" : "integer",
+                    "index" : "no"
+                },
+                "UserLocation" : {
+                    "type" : "string",
+                    "index" : "no"
+                },
+                "UserScreenName" : {
+                    "type" : "string",
+                    "index" : "no"
+                },
+                "UserStatusesCount" : {
+                    "type" : "integer",
+                    "index" : "no"
+                },
+                "UserTimeZone" : {
+                    "type" : "string",
+                    "index" : "no"
+                },
+                "UserUrl" : {
+                    "type" : "string",
+                    "index" : "no"
+                },
+                "UserUtcOffset" : {
+                    "type" : "string",
+                    "index" : "no"
+                },
+                "UserProfileImageUrl" : {
+                    "type" : "string",
+                    "index" : "no"
+                }
+            },
+            "_all" : { "enabled" : false },
+            "_routing" : {
+                "required" : true,
+                "path" : "UserID"
+            }
+        }
+    }
+}
+
+{
+    "query" : {
+        "bool" : {
+            "must" : { "match" : { "Text" : "obama" } }
+        }
+    }
+}
+
+{
+    "query" : {
+        "filtered" : {
+            "filter" : { "term" : { "Text" : "obama" } }
+        }
+    }
+}
+
+{
+    "query" : {
+        "filtered" : {
+            "filter" : { "range" : { "CreatedAt" : { "from" : "2013-01-01" } } }
+        }
+    }
+}
+
+{
+    "constant_score" : {
+        "filter" : {
+            "exists" : { "field" : "jew" }
+        }
+    }
+}
+
+UserID=227782167
+CreatedAt=1420068309000
