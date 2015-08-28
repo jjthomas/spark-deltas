@@ -19,7 +19,7 @@ object DsoapQuery {
         |{
         |   "Operation" : 2,
         |   "Search" : [{"IdxStoreName" : "Text", "Query" : "${args(0)}"}],
-        |   "Filter" : [],
+        |   "Filter" : [{"ColumnName" : "text"}],
         |   "Description" : "query from spark"
         |}
       """.stripMargin
