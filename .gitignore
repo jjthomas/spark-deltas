@@ -225,3 +225,4 @@ etg.orleans.codegen.cs
 target/
 *.iml
 .idea/
+dependency-reduced-pom.xml
